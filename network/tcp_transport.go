@@ -41,11 +41,16 @@ func (t *TCPTransport) Listen(address string) error {
 
 // Close closes the TCP transport, releasing any associated resources.
 func (t *TCPTransport) Close() error {
-	// Close the listener if it's initialized
-	if t.Listener != nil {
-		err := t.Listener.Close()
-		t.Listener = nil // Reset the listener
+	// Check if listener is initialized
+	if t.Listener == nil {
+		return nil // Listener already closed
+	}
+
+	// Close the listener
+	err := t.Listener.Close()
+	if err != nil {
 		return err
 	}
+	t.Listener = nil // Reset the listener
 	return nil
 }

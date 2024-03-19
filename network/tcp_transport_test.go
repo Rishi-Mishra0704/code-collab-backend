@@ -8,9 +8,9 @@ import (
 
 func TestTCPTransport_Listen(t *testing.T) {
 	transport := NewTCPTransport()
-	address := SetupTest(t)
 
 	// Test successful listener initialization
+	address := SetupTest(t) // Use random port
 	err := transport.Listen(address)
 	assert.NoError(t, err)
 	assert.NotNil(t, transport.Listener)
@@ -20,12 +20,20 @@ func TestTCPTransport_Listen(t *testing.T) {
 	assert.NoError(t, err) // No error should occur since listener is already started
 }
 
+func TestTCPTransport_Listen_Error(t *testing.T) {
+	transport := NewTCPTransport()
+
+	// Test listener initialization with an invalid address
+	err := transport.Listen("invalid_address")
+	assert.Error(t, err)
+	assert.Nil(t, transport.Listener)
+}
+
 func TestTCPTransport_Close(t *testing.T) {
 	transport := NewTCPTransport()
-	address := SetupTest(t)
-
+	addr := SetupTest(t)
 	// Initialize listener
-	err := transport.Listen(address)
+	err := transport.Listen(addr) // Use random port
 	assert.NoError(t, err)
 
 	// Test closing the listener
@@ -40,14 +48,4 @@ func TestTCPTransport_Close_NotInitialized(t *testing.T) {
 	// Test closing when listener is not initialized
 	err := transport.Close()
 	assert.NoError(t, err) // No error should occur if listener is not initialized
-}
-
-func TestTCPTransport_Listen_Error(t *testing.T) {
-	transport := NewTCPTransport()
-	invalidAddress := "invalid_address"
-
-	// Test listener initialization with an invalid address
-	err := transport.Listen(invalidAddress)
-	assert.Error(t, err)
-	assert.Nil(t, transport.Listener)
 }

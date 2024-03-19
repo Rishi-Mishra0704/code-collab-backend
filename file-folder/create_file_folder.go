@@ -8,6 +8,19 @@ import (
 )
 
 // CreateFileOrFolder handles HTTP requests to create a file or folder.
+// It accepts a POST request with a JSON body containing the path and type of file/folder to be created.
+// The request body should have the following structure:
+//
+//	{
+//	    "path": "string",     // Path to the file or folder to be created
+//	    "isFolder": "bool"    // Indicates whether the request is to create a folder
+//	}
+//
+// If 'isFolder' is true, it will create a folder at the specified path.
+// If 'isFolder' is false, it will create a file at the specified path.
+// Upon successful creation, it returns a JSON response with HTTP status 201 (Created) and a success message.
+// In case of any errors during the creation process, it returns a JSON response with HTTP status 500 (Internal Server Error)
+// and an error message.
 func CreateFileOrFolder(c *gin.Context) {
 	// Define a struct to hold request parameters.
 	var req struct {

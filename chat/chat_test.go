@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -37,4 +38,19 @@ func TestChatService_SendMessage(t *testing.T) {
 	// Send a message
 	err := chatService.SendMessage(mockPeer, "Hello, world!")
 	assert.NoError(t, err)
+
+	t.Run("SendError", func(t *testing.T) {
+		// Set up the mock transport to return an error when sending the message
+		mockTransport.SendFunc = func(data []byte, peer *network.Peer) error {
+			return errors.New("send error")
+		}
+
+		// Send a message
+		err := chatService.SendMessage(mockPeer, "Hello, world!")
+		// Ensure that an error is returned
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to send message")
+		assert.Contains(t, err.Error(), "send error")
+	})
+
 }

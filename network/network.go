@@ -38,4 +38,9 @@ type Transport interface {
 	// It creates a new room for collaborative editing and returns the ID of the newly created room.
 	// Returns the room ID and an error if creating the room fails.
 	CreateRoom() (string, error)
+
+	// Connect connects to a peer with the specified address.
+	// It takes the address (host:port) of the peer to connect to.
+	// Returns the connected peer and an error if the connection fails.
+	Connect(address string) (*Peer, error)
 }

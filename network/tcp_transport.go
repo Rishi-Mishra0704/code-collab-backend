@@ -1,6 +1,7 @@
 package network
 
 import (
+	"fmt"
 	"net"
 	"sync"
 )
@@ -53,4 +54,30 @@ func (t *TCPTransport) Close() error {
 	}
 	t.Listener = nil // Reset the listener
 	return nil
+}
+
+// Connect connects to a peer with the specified address.
+func (t *TCPTransport) Connect(address string) (*Peer, error) {
+	// Dial the peer's address
+	conn, err := net.Dial("tcp", address)
+	if err != nil {
+		fmt.Printf("Failed to connect to peer at %s: %v\n", address, err)
+		return nil, err
+	}
+
+	// Create a new peer with the connection
+	peer := &Peer{
+		Address: address,
+		Conn:    conn,
+		Online:  true,
+	}
+
+	// Add the peer to the map of connected peers
+	t.Mutex.Lock()
+	defer t.Mutex.Unlock()
+	t.Peers[address] = peer
+
+	fmt.Printf("Connected to peer at %s\n", address)
+
+	return peer, nil
 }

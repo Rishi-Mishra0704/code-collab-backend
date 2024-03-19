@@ -1,4 +1,4 @@
-package tcp
+package network
 
 // Transport represents the network transport layer responsible for facilitating
 // communication between peers in the collaborative code editing network.

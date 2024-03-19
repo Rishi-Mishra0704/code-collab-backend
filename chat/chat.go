@@ -1,6 +1,11 @@
 package chat
 
-import "github.com/Rishi-Mishra0704/code-collab-backend/network"
+import (
+	"fmt"
+	"time"
+
+	"github.com/Rishi-Mishra0704/code-collab-backend/network"
+)
 
 // ChatMessage represents a message in the chat system.
 // It encapsulates the content of the message, along with metadata such as the sender's information and the timestamp.
@@ -22,4 +27,29 @@ func NewChatService(transport network.Transport) *ChatService {
 	return &ChatService{
 		Transport: transport,
 	}
+}
+
+// SendMessage sends a chat message to a specific peer.
+func (cs *ChatService) SendMessage(peer *network.Peer, content string) error {
+	// Create a new chat message with current timestamp
+	timestamp := time.Now().Format("02-01-2006")
+
+	msg := &ChatMessage{
+		Peer:      *peer, // Extract the embedded Peer from the ChatMessage
+		Content:   content,
+		Timestamp: timestamp,
+	}
+
+	// Serialize the message
+	data, err := serializeMessage(msg)
+	if err != nil {
+		return fmt.Errorf("failed to serialize message: %v", err)
+	}
+
+	// Send the serialized message to the peer
+	if err := cs.Send(data, peer); err != nil {
+		return fmt.Errorf("failed to send message: %v", err)
+	}
+
+	return nil
 }

@@ -8,6 +8,17 @@ import (
 )
 
 // ReadFileContent handles HTTP requests to read the content of a file.
+// It accepts a POST request with a JSON body containing the path of the file whose content is to be read.
+// The request body should have the following structure:
+//
+//	{
+//	    "path": "string"  // Path to the file whose content is to be read
+//	}
+//
+// Upon receiving the request, it reads the content of the specified file and returns a JSON response with HTTP status 200 (OK)
+// containing the content of the file as a string.
+// In case of any errors during the process, it returns a JSON response with HTTP status 500 (Internal Server Error)
+// along with an error message providing details of the encountered error.
 func ReadFileContent(c *gin.Context) {
 	// Define a struct to hold request parameters.
 	var req struct {

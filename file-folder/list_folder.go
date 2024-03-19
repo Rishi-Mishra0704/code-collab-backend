@@ -9,6 +9,17 @@ import (
 )
 
 // ListFilesOrFolder handles HTTP requests to list files or folders in a directory.
+// It accepts a POST request with a JSON body containing the path of the directory whose files or folders are to be listed.
+// The request body should have the following structure:
+//
+//	{
+//	    "path": "string"  // Path to the directory whose files or folders are to be listed
+//	}
+//
+// Upon receiving the request, it reads the contents of the specified directory and returns a JSON response with HTTP status 200 (OK)
+// containing an array of file names present in the directory.
+// In case of any errors during the process, it returns a JSON response with HTTP status 500 (Internal Server Error)
+// and an error message.
 func ListFilesOrFolder(c *gin.Context) {
 	// Define a struct to hold request parameters.
 	var req struct {

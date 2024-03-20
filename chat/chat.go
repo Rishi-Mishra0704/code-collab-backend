@@ -22,7 +22,7 @@ func NewChatService(transport *network.TCPTransport) *ChatService {
 }
 
 // SendMessage sends a chat message to a specific room.
-func (cs *ChatService) SendMessage(roomID string, sender *network.Peer, content string) error {
+func (cs *ChatService) Send(roomID string, sender *network.Peer, content string) error {
 	// Create a new chat message with current timestamp
 	timestamp := time.Now().Format("02-01-2006")
 
@@ -38,4 +38,18 @@ func (cs *ChatService) SendMessage(roomID string, sender *network.Peer, content 
 	room.Chat = append(room.Chat, fmt.Sprintf("[%s] %s: %s", timestamp, sender.ID, content))
 
 	return nil
+}
+
+// ReceiveMessage receives a chat message from a specific room.
+func (cs *ChatService) Receive(roomID string) ([]string, error) {
+	// Retrieve the room from the TCPTransport
+	cs.TCPTransport.Mutex.Lock()
+	defer cs.TCPTransport.Mutex.Unlock()
+	room, ok := cs.TCPTransport.Rooms[roomID]
+	if !ok {
+		return nil, fmt.Errorf("room %s does not exist", roomID)
+	}
+
+	// Return the chat history of the room
+	return room.Chat, nil
 }

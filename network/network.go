@@ -4,10 +4,10 @@ package network
 // communication between peers in the collaborative code editing network.
 // It supports TCP and WebRTC protocols but can be extended to support other protocols(UDP, Sockets, RPC, ...).
 type Transport interface {
-	// Send sends data to the specified peer over the network.
-	// It takes a byte slice containing the data to be sent and a pointer to the destination peer.
+	// Send sends data to the specified room over the network.
+	// It takes a content sent by user containing the data to be sent and a pointer to the destination peer.
 	// Returns an error if sending the data fails.
-	Send(data []byte, peer *Peer) error
+	Send(roomID string, sender *Peer, content string) error
 
 	// Receive receives data from any peer over the network.
 	// It returns the received data as a byte slice and the source peer from which the data was received.

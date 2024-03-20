@@ -64,6 +64,10 @@ func (t *TCPTransport) Close() error {
 	return nil
 }
 
+// CreateRoom creates a new collaborative editing room and returns the room ID.
+// The room is created by taking host as the initial peer in the room.
+// It creates a mutex-protected room and adds the host to the room.
+// It returns the room ID and an error if creating the room fails.
 func (t *TCPTransport) CreateRoom(host *Peer) (string, error) {
 	// Generate a unique room ID
 	roomID := generateRoomID()
@@ -87,6 +91,9 @@ func (t *TCPTransport) CreateRoom(host *Peer) (string, error) {
 	return roomID, nil
 }
 
+// Helper function to generate a random room ID
+// it generates a random 8-byte hexadecimal string
+// that can be used as a unique room ID
 func generateRoomID() string {
 	// Generate 8 random bytes
 	bytes := make([]byte, 8)

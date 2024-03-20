@@ -1,6 +1,7 @@
 package network
 
 import (
+	"encoding/hex"
 	"fmt"
 	"testing"
 
@@ -120,5 +121,22 @@ func TestJoinRoom(t *testing.T) {
 		t.Fatalf("JoinRoom did not return error for non-existent room")
 	} else if err.Error() != fmt.Sprintf("room %s does not exist", "nonexistent") {
 		t.Fatalf("JoinRoom returned unexpected error message for non-existent room")
+	}
+}
+
+// TestGenerateRoomID tests the generateRoomID function.
+func TestGenerateRoomID(t *testing.T) {
+	// Generate a room ID
+	roomID := generateRoomID()
+
+	// Check if the room ID is of the correct length (16 characters for 8 bytes)
+	if len(roomID) != 16 {
+		t.Fatalf("Generated room ID has incorrect length: got %d, want 16", len(roomID))
+	}
+
+	// Ensure that the room ID consists of valid hexadecimal characters
+	_, err := hex.DecodeString(roomID)
+	if err != nil {
+		t.Fatalf("Generated room ID contains invalid hexadecimal characters: %s", err)
 	}
 }

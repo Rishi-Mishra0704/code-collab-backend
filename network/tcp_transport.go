@@ -120,3 +120,27 @@ func (t *TCPTransport) JoinRoom(roomID string, peer *Peer) error {
 	fmt.Printf("Peer %s joined room %s\n", peer.ID, roomID)
 	return nil
 }
+
+// LeaveRoom allows a peer to leave a collaborative editing room by its ID.
+// It checks if the specified room exists in the network.
+// If the room exists, it removes the peer from the room's list of connected peers.
+// It returns an error if the room doesn't exist or if the peer is not in the room.
+func (t *TCPTransport) LeaveRoom(roomID string, peerID string) error {
+	t.Mutex.Lock()
+	defer t.Mutex.Unlock()
+
+	room, ok := t.Rooms[roomID]
+	if !ok {
+		return fmt.Errorf("room %s does not exist", roomID)
+	}
+
+	_, exists := room.Peers[peerID]
+	if !exists {
+		return fmt.Errorf("peer %s is not in room %s", peerID, roomID)
+	}
+
+	delete(room.Peers, peerID)
+	fmt.Printf("Peer %s left room %s\n", peerID, roomID)
+
+	return nil
+}

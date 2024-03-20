@@ -140,3 +140,47 @@ func TestGenerateRoomID(t *testing.T) {
 		t.Fatalf("Generated room ID contains invalid hexadecimal characters: %s", err)
 	}
 }
+
+// TestLeaveRoom tests the LeaveRoom function of the TCPTransport.
+func TestLeaveRoom(t *testing.T) {
+	// Create a new TCPTransport instance
+	transport := NewTCPTransport()
+
+	// Create a peer to act as the host
+	host := &Peer{
+		ID: "host1",
+	}
+
+	// Create a room and add the host
+	roomID, err := transport.CreateRoom(host)
+	if err != nil {
+		t.Fatalf("Failed to create room: %v", err)
+	}
+
+	// Create a peer to join the room
+	peer := &Peer{
+		ID: "peer1",
+	}
+	err = transport.JoinRoom(roomID, peer)
+	if err != nil {
+		t.Fatalf("Failed to join room: %v", err)
+	}
+
+	// Leave the room with the peer
+	err = transport.LeaveRoom(roomID, peer.ID)
+	if err != nil {
+		t.Fatalf("Failed to leave room: %v", err)
+	}
+
+	// Attempt to leave the room again with the same peer
+	err = transport.LeaveRoom(roomID, peer.ID)
+	if err == nil {
+		t.Fatalf("LeaveRoom did not return error for peer not in room")
+	}
+
+	// Attempt to leave a non-existent room
+	err = transport.LeaveRoom("nonexistent", peer.ID)
+	if err == nil {
+		t.Fatalf("LeaveRoom did not return error for non-existent room")
+	}
+}

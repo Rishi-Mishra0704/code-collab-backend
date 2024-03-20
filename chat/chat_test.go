@@ -1,7 +1,7 @@
 package chat
 
 import (
-	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,48 +9,65 @@ import (
 	"github.com/Rishi-Mishra0704/code-collab-backend/network"
 )
 
-func TestChatService_SendMessage(t *testing.T) {
-	// Mock transport layer
-	mockTransport := &MockTransport{
-		SendFunc: func(data []byte, peer *network.Peer) error {
-			// Verify that the message data is not empty
-			assert.NotEmpty(t, data)
-
-			// Verify that the peer is not nil
-			assert.NotNil(t, peer)
-
-			return nil
-		},
+func TestSendMessage(t *testing.T) {
+	// Create a new instance of TCPTransport
+	transport := &network.TCPTransport{
+		Rooms: make(map[string]*network.Room),
 	}
 
-	// Create a new chat service with the mock transport
-	chatService := NewChatService(mockTransport)
-	// Create a mock address for the peer
-	addr := SetupTest(t)
-	// Create a mock peer
-	mockPeer := &network.Peer{
-		ID:      "mock_peer_id",
-		Name:    "Mock Peer",
+	// Create a new instance of ChatService
+	chatService := NewChatService(transport)
+	addr := SetupRandomAddr(t)
+
+	// Create a test peer
+	sender := &network.Peer{
+		ID:      "sender1",
 		Address: addr,
-		Online:  true,
 	}
+
+	// Create a test room
+	roomID := "room1"
+	room := &network.Room{
+		ID:    roomID,
+		Host:  sender,
+		Peers: make(map[string]*network.Peer),
+		Chat:  []string{},
+	}
+	transport.Rooms[roomID] = room
 
 	// Send a message
-	err := chatService.SendMessage(mockPeer, "Hello, world!")
-	assert.NoError(t, err)
+	content := "Hello, world!"
+	err := chatService.SendMessage(roomID, sender, content)
 
-	t.Run("SendError", func(t *testing.T) {
-		// Set up the mock transport to return an error when sending the message
-		mockTransport.SendFunc = func(data []byte, peer *network.Peer) error {
-			return errors.New("send error")
-		}
+	// Check if there are any errors
+	assert.NoError(t, err, "SendMessage should not return an error")
 
-		// Send a message
-		err := chatService.SendMessage(mockPeer, "Hello, world!")
-		// Ensure that an error is returned
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to send message")
-		assert.Contains(t, err.Error(), "send error")
-	})
+	// Check if the message is added to the chat history
+	assert.Len(t, transport.Rooms[roomID].Chat, 1, "Chat history should contain one message")
+	assert.Contains(t, transport.Rooms[roomID].Chat[0], content, "Chat history should contain the sent message")
+}
 
+// TestSendMessageRoomNotExist tests the SendMessage method when the specified room does not exist.
+func TestSendMessageRoomNotExist(t *testing.T) {
+	// Create a new instance of TCPTransport
+	transport := &network.TCPTransport{
+		Rooms: make(map[string]*network.Room),
+	}
+
+	// Create a new instance of ChatService
+	chatService := NewChatService(transport)
+
+	// Create a test peer
+	sender := &network.Peer{
+		ID: "sender1",
+	}
+
+	// Attempt to send a message to a non-existent room
+	roomID := "nonexistent"
+	content := "Hello, world!"
+	err := chatService.SendMessage(roomID, sender, content)
+
+	// Check if the error is returned as expected
+	assert.Error(t, err, "SendMessage should return an error when the room does not exist")
+	assert.EqualError(t, err, fmt.Sprintf("room %s does not exist", roomID), "Error message should indicate that the room does not exist")
 }

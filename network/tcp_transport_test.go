@@ -1,6 +1,7 @@
 package network
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -76,4 +77,48 @@ func TestTCPTransport_CreateRoom(t *testing.T) {
 	assert.NotNil(t, room)
 	assert.Equal(t, host, room.Host)
 	assert.Contains(t, room.Peers, host.ID)
+}
+
+// TestJoinRoom tests the JoinRoom function of the TCPTransport.
+func TestJoinRoom(t *testing.T) {
+	// Create a new TCPTransport instance
+	transport := NewTCPTransport()
+
+	// Create a peer to act as the host
+	host := &Peer{
+		ID: "host1",
+	}
+
+	// Create a room and add the host
+	roomID, err := transport.CreateRoom(host)
+	if err != nil {
+		t.Fatalf("Failed to create room: %v", err)
+	}
+
+	// Create a peer to join the room
+	peer := &Peer{
+		ID: "peer1",
+	}
+
+	// Join the room with the peer
+	err = transport.JoinRoom(roomID, peer)
+	if err != nil {
+		t.Fatalf("Failed to join room: %v", err)
+	}
+
+	// Attempt to join the room again with the same peer
+	err = transport.JoinRoom(roomID, peer)
+	if err == nil {
+		t.Fatalf("JoinRoom did not return error for duplicate peer")
+	} else if err.Error() != fmt.Sprintf("peer %s is already in room %s", peer.ID, roomID) {
+		t.Fatalf("JoinRoom returned unexpected error message for duplicate peer")
+	}
+
+	// Attempt to join a non-existent room
+	err = transport.JoinRoom("nonexistent", peer)
+	if err == nil {
+		t.Fatalf("JoinRoom did not return error for non-existent room")
+	} else if err.Error() != fmt.Sprintf("room %s does not exist", "nonexistent") {
+		t.Fatalf("JoinRoom returned unexpected error message for non-existent room")
+	}
 }

@@ -91,7 +91,7 @@ func (t *TCPTransport) CreateRoom(host *Peer) (string, error) {
 func generateRoomID() string {
 	bytes := make([]byte, 8)
 	if _, err := rand.Read(bytes); err != nil {
-		panic(err)
+		fmt.Printf("error creating room id : %s", err)
 	}
 	return hex.EncodeToString(bytes)
 }

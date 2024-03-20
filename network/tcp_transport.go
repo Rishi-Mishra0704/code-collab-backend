@@ -1,18 +1,26 @@
 package network
 
 import (
-	"fmt"
+	"crypto/rand"
+	"encoding/hex"
 	"net"
 	"sync"
 )
+
+type Room struct {
+	ID    string
+	Host  *Peer
+	Peers map[string]*Peer
+	Chat  []string
+}
 
 // TCPTransport implements the Transport interface using TCP.
 type TCPTransport struct {
 	// Listener is used to accept incoming connections
 	Listener net.Listener
 
-	// Peers is a map to store connected peers
-	Peers map[string]*Peer
+	// Rooms is a map to store rooms in a network
+	Rooms map[string]*Room
 	// Mutex for safe access to the peers map
 	Mutex sync.Mutex
 }
@@ -20,7 +28,7 @@ type TCPTransport struct {
 // NewTCPTransport creates a new instance of TCPTransport.
 func NewTCPTransport() *TCPTransport {
 	return &TCPTransport{
-		Peers: make(map[string]*Peer),
+		Rooms: make(map[string]*Room),
 	}
 }
 
@@ -56,28 +64,38 @@ func (t *TCPTransport) Close() error {
 	return nil
 }
 
-// Connect connects to a peer with the specified address.
-func (t *TCPTransport) Connect(address string) (*Peer, error) {
-	// Dial the peer's address
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		fmt.Printf("Failed to connect to peer at %s: %v\n", address, err)
-		return nil, err
+func (t *TCPTransport) CreateRoom(host *Peer) (string, error) {
+	// Generate a unique room ID
+	roomID := generateRoomID()
+
+	// Create a new room
+	room := &Room{
+		ID:    roomID,
+		Host:  host,
+		Peers: make(map[string]*Peer),
+		Chat:  []string{},
 	}
 
-	// Create a new peer with the connection
-	peer := &Peer{
-		Address: address,
-		Conn:    conn,
-		Online:  true,
-	}
+	// Add the host to the room
+	room.Peers[host.ID] = host
 
-	// Add the peer to the map of connected peers
+	// Add the room to the map of connected rooms
 	t.Mutex.Lock()
 	defer t.Mutex.Unlock()
-	t.Peers[address] = peer
+	t.Rooms[roomID] = room
 
-	fmt.Printf("Connected to peer at %s\n", address)
+	return roomID, nil
+}
 
-	return peer, nil
+func generateRoomID() string {
+	// Generate 8 random bytes
+	bytes := make([]byte, 8)
+	if _, err := rand.Read(bytes); err != nil {
+		panic(err) // Error handling can be adjusted based on the use case
+	}
+
+	// Convert the random bytes to a hexadecimal string
+	roomID := hex.EncodeToString(bytes)
+
+	return roomID
 }

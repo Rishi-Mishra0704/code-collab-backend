@@ -50,36 +50,30 @@ func TestTCPTransport_Close_NotInitialized(t *testing.T) {
 	assert.NoError(t, err) // No error should occur if listener is not initialized
 }
 
-func TestTCPTransport_Connect(t *testing.T) {
+func TestTCPTransport_CreateRoom(t *testing.T) {
 	transport := NewTCPTransport()
-	address := SetupTest(t) // Use random available port for testing
+	addr := SetupTest(t)
+	host := &Peer{
+		ID:      "host_peer_id",
+		Name:    "Host Peer",
+		Email:   "host@example.com",
+		Address: addr,
+		Online:  true,
+		Conn:    nil, // Connection not needed for this test
+	}
 
-	// Start the transport listener
-	err := transport.Listen(address)
+	// Create a room
+	roomID, err := transport.CreateRoom(host)
 	assert.NoError(t, err)
 
-	// Run the Connect method
-	peer, err := transport.Connect(address)
-	assert.NoError(t, err)
-
-	// Check that the peer is added to the map of connected peers
+	// Check that the room is added to the map of rooms
 	transport.Mutex.Lock()
 	defer transport.Mutex.Unlock()
-	assert.Contains(t, transport.Peers, address)
+	assert.Contains(t, transport.Rooms, roomID)
 
-	// Check that the peer's connection is established
-	assert.NotNil(t, peer.Conn)
-	assert.True(t, peer.Online)
-}
-
-func TestTCPTransport_Connect_Error(t *testing.T) {
-	transport := NewTCPTransport()
-	address := "invalid_address"
-
-	// Run the Connect method with an invalid address
-	peer, err := transport.Connect(address)
-
-	// Check that the error is not nil
-	assert.Error(t, err)
-	assert.Nil(t, peer)
+	// Check that the room contains the host
+	room := transport.Rooms[roomID]
+	assert.NotNil(t, room)
+	assert.Equal(t, host, room.Host)
+	assert.Contains(t, room.Peers, host.ID)
 }

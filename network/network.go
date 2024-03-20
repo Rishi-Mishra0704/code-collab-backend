@@ -27,7 +27,7 @@ type Transport interface {
 	// JoinRoom joins a collaborative editing room using the specified room ID.
 	// It takes the ID of the room to join and performs any necessary actions to join the room.
 	// Returns an error if joining the room fails.
-	JoinRoom(roomID string) error
+	JoinRoom(roomID string, peer *Peer) error
 
 	// LeaveRoom leaves the current collaborative editing room.
 	// It leaves the current room and performs any necessary cleanup actions.

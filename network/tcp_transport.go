@@ -3,6 +3,7 @@ package network
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net"
 	"sync"
@@ -75,6 +76,10 @@ func (t *TCPTransport) CreateRoom(host *Peer) (string, error) {
 		Host:  host,
 		Peers: make(map[string]*Peer),
 		Chat:  []string{},
+	}
+
+	if host.ID == "" || host.Name == "" || host.Address == "" || host.Email == "" {
+		return "", errors.New("host peer must have ID, Name, Email and Address fields")
 	}
 
 	room.Peers[host.ID] = host // Add the host to the room

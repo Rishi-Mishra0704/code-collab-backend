@@ -148,3 +148,20 @@ func (t *TCPTransport) LeaveRoom(roomID string, peerID string) error {
 func (t *TCPTransport) GetAllRooms() map[string]*Room {
 	return t.Rooms
 }
+
+// Send sends data to the specified room over the network.
+func (t *TCPTransport) Send(roomID string, sender *Peer, content string) error {
+	t.Mutex.Lock()
+	defer t.Mutex.Unlock()
+
+	room, ok := t.Rooms[roomID]
+	if !ok {
+		return fmt.Errorf("room %s does not exist", roomID)
+	}
+
+	// Store the message in the room's chat history
+	message := fmt.Sprintf("Message sent from %s to %s: %s", sender.ID, roomID, content)
+	room.Chat = append(room.Chat, message)
+
+	return nil
+}

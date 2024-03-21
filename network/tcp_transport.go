@@ -11,10 +11,10 @@ import (
 // Room represents a collaborative editing room in the network.
 // It contains information about the room ID, host, connected peers, and chat history.
 type Room struct {
-	ID    string           // Unique identifier for the room
-	Host  *Peer            // Peer representing the host of the room
-	Peers map[string]*Peer // Map of connected peers in the room, keyed by peer ID
-	Chat  []string         // Chat history within the room
+	ID    string           `json:"id"`    // Unique identifier for the room
+	Host  *Peer            `json:"host"`  // Peer representing the host of the room
+	Peers map[string]*Peer `json:"peers"` // Map of connected peers in the room, keyed by peer ID
+	Chat  []string         `json:"chat"`  // Chat history within the room
 }
 
 // TCPTransport implements the Transport interface using TCP.
@@ -143,4 +143,8 @@ func (t *TCPTransport) LeaveRoom(roomID string, peerID string) error {
 	fmt.Printf("Peer %s left room %s\n", peerID, roomID)
 
 	return nil
+}
+
+func (t *TCPTransport) GetAllRooms() map[string]*Room {
+	return t.Rooms
 }

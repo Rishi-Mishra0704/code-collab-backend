@@ -64,9 +64,10 @@ func (cc *ChatController) JoinRoom(c *gin.Context) {
 }
 
 // LeaveRoom handles a peer leaving a chat room.
+// Update the LeaveRoom function to properly extract the peer ID from the request parameters.
 func (cc *ChatController) LeaveRoom(c *gin.Context) {
 	roomID := c.Param("roomID")
-	peerID := c.Param("peerID")
+	peerID := c.Param("peerID") // Ensure peerID is correctly extracted
 
 	// Leave room
 	err := cc.TCPTransport.LeaveRoom(roomID, peerID)
@@ -76,4 +77,12 @@ func (cc *ChatController) LeaveRoom(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Peer %s left room %s", peerID, roomID)})
+}
+
+func (cc *ChatController) GetRooms(c *gin.Context) {
+	// Get all rooms from the TCPTransport
+	rooms := cc.TCPTransport.GetAllRooms()
+
+	// Return the rooms as JSON response
+	c.JSON(http.StatusOK, gin.H{"rooms": rooms})
 }

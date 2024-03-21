@@ -20,6 +20,7 @@ func main() {
 	router := gin.Default()
 
 	// Define API endpoints using the ChatController methods
+	router.GET("/rooms", chatController.GetRooms)
 	router.POST("/create-room", chatController.CreateRoom)
 	router.POST("/join-room/:roomID", chatController.JoinRoom)
 	router.POST("/leave-room/:roomID/:peerID", chatController.LeaveRoom)

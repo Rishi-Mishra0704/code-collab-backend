@@ -184,3 +184,38 @@ func TestLeaveRoom(t *testing.T) {
 		t.Fatalf("LeaveRoom did not return error for non-existent room")
 	}
 }
+
+func TestGetAllRooms(t *testing.T) {
+	// Create a new instance of TCPTransport
+	tcpTransport := NewTCPTransport()
+
+	// Create some sample rooms
+	room1 := &Room{
+		ID:    "room1",
+		Host:  &Peer{ID: "host1"},
+		Peers: map[string]*Peer{},
+		Chat:  []string{},
+	}
+	room2 := &Room{
+		ID:    "room2",
+		Host:  &Peer{ID: "host2"},
+		Peers: map[string]*Peer{},
+		Chat:  []string{},
+	}
+
+	// Add the rooms to the TCPTransport
+	tcpTransport.Rooms["room1"] = room1
+	tcpTransport.Rooms["room2"] = room2
+
+	// Call the GetAllRooms method
+	rooms := tcpTransport.GetAllRooms()
+
+	// Check if the returned map of rooms is correct
+	expectedRooms := map[string]*Room{
+		"room1": room1,
+		"room2": room2,
+	}
+
+	// Use assert.Equal to check if the actual and expected rooms are equal
+	assert.Equal(t, expectedRooms, rooms, "GetAllRooms() returned incorrect rooms")
+}

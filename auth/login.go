@@ -3,7 +3,6 @@ package auth
 import (
 	"net/http"
 
-	"github.com/Rishi-Mishra0704/code-collab-backend/network"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,13 +18,13 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 	// Check if the user exists in the users map and if the provided password matches the stored password.
-	user, exists := network.Peer[loginRequest.Name]
-	if !exists || user.Password != loginRequest.Password {
+	user, exists := peers[loginRequest.Name]
+	if !exists {
 		// Respond with an error if the username or password is invalid.
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return
 	}
 
 	// Respond with a success message if the login process is successful.
-	c.JSON(http.StatusOK, gin.H{"message": "User logged in successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "User logged in successfully", "user": user})
 }

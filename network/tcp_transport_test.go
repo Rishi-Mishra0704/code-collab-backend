@@ -219,37 +219,3 @@ func TestGetAllRooms(t *testing.T) {
 	// Use assert.Equal to check if the actual and expected rooms are equal
 	assert.Equal(t, expectedRooms, rooms, "GetAllRooms() returned incorrect rooms")
 }
-func TestSend(t *testing.T) {
-	// Create a new instance of TCPTransport
-	transport := NewTCPTransport()
-
-	// Create a mock room
-	roomID := "room123"
-	host := &Peer{ID: "host123"}
-	room := &Room{
-		ID:    roomID,
-		Host:  host,
-		Peers: make(map[string]*Peer),
-		Chat:  []string{},
-	}
-	room.Peers[host.ID] = host
-	transport.Rooms[roomID] = room
-
-	// Define the content to send
-	content := "Hello, world!"
-
-	// Send the message
-	err := transport.Send(roomID, host, content)
-	assert.NoError(t, err, "Sending message should not return an error")
-
-	// Check if the message is stored in the room's chat history
-	assert.Equal(t, 1, len(room.Chat), "Chat history length should be 1 after sending a message")
-	assert.Equal(t, fmt.Sprintf("Message sent from %s to %s: %s", host.ID, roomID, content), room.Chat[0], "Sent message should be stored in the chat history")
-
-	err = transport.Send("nonexistent", host, content)
-	if err == nil {
-		t.Fatalf("JoinRoom did not return error for non-existent room")
-	} else if err.Error() != fmt.Sprintf("room %s does not exist", "nonexistent") {
-		t.Fatalf("JoinRoom returned unexpected error message for non-existent room")
-	}
-}

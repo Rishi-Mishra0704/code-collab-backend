@@ -8,10 +8,10 @@ import "net"
 // facilitating communication, collaboration, and coordination within the
 // distributed code editing environment.
 type Peer struct {
-	ID      string   // Unique identifier for the peer
-	Name    string   // Name of the peer
-	Email   string   // Email of the peer
-	Address string   // Host:Port address of the peer
-	Online  bool     // Indicates whether the peer is currently online
-	Conn    net.Conn // Network connection for the peer
+	ID      string   `json:"id"`      // Unique identifier for the peer
+	Name    string   `json:"name"`    // Name of the peer
+	Email   string   `json:"email"`   // Email of the peer
+	Address string   `json:"address"` // Host:Port address of the peer
+	Online  bool     `json:"online"`  // Indicates whether the peer is currently online
+	Conn    net.Conn `json:"-"`       // Network connection for the peer (omitted from JSON)
 }

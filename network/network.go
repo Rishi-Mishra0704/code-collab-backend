@@ -4,10 +4,10 @@ package network
 // communication between peers in the collaborative code editing network.
 // It supports TCP and WebRTC protocols but can be extended to support other protocols(UDP, Sockets, RPC, ...).
 type Transport interface {
-	// Send sends data to the specified peer over the network.
-	// It takes a byte slice containing the data to be sent and a pointer to the destination peer.
+	// Send sends data to the specified room over the network.
+	// It takes a content sent by user containing the data to be sent and a pointer to the destination peer.
 	// Returns an error if sending the data fails.
-	Send(data []byte, peer *Peer) error
+	Send(roomID string, sender *Peer, content string) error
 
 	// Receive receives data from any peer over the network.
 	// It returns the received data as a byte slice and the source peer from which the data was received.
@@ -27,7 +27,7 @@ type Transport interface {
 	// JoinRoom joins a collaborative editing room using the specified room ID.
 	// It takes the ID of the room to join and performs any necessary actions to join the room.
 	// Returns an error if joining the room fails.
-	JoinRoom(roomID string) error
+	JoinRoom(roomID string, peer *Peer) error
 
 	// LeaveRoom leaves the current collaborative editing room.
 	// It leaves the current room and performs any necessary cleanup actions.
@@ -37,10 +37,5 @@ type Transport interface {
 	// CreateRoom creates a new collaborative editing room and returns the room ID.
 	// It creates a new room for collaborative editing and returns the ID of the newly created room.
 	// Returns the room ID and an error if creating the room fails.
-	CreateRoom() (string, error)
-
-	// Connect connects to a peer with the specified address.
-	// It takes the address (host:port) of the peer to connect to.
-	// Returns the connected peer and an error if the connection fails.
-	Connect(address string) (*Peer, error)
+	CreateRoom(host *Peer) (string, error)
 }

@@ -1,6 +1,8 @@
 package network
 
 import (
+	"encoding/hex"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -50,36 +52,204 @@ func TestTCPTransport_Close_NotInitialized(t *testing.T) {
 	assert.NoError(t, err) // No error should occur if listener is not initialized
 }
 
-func TestTCPTransport_Connect(t *testing.T) {
+func TestTCPTransport_CreateRoom(t *testing.T) {
 	transport := NewTCPTransport()
-	address := SetupTest(t) // Use random available port for testing
+	addr := SetupTest(t)
+	host := &Peer{
+		ID:      "host_peer_id",
+		Name:    "Host Peer",
+		Email:   "host@example.com",
+		Address: addr,
+		Online:  true,
+		Conn:    nil, // Connection not needed for this test
+	}
 
-	// Start the transport listener
-	err := transport.Listen(address)
+	// Create a room
+	roomID, err := transport.CreateRoom(host)
 	assert.NoError(t, err)
 
-	// Run the Connect method
-	peer, err := transport.Connect(address)
-	assert.NoError(t, err)
-
-	// Check that the peer is added to the map of connected peers
+	// Check that the room is added to the map of rooms
 	transport.Mutex.Lock()
 	defer transport.Mutex.Unlock()
-	assert.Contains(t, transport.Peers, address)
+	assert.Contains(t, transport.Rooms, roomID)
 
-	// Check that the peer's connection is established
-	assert.NotNil(t, peer.Conn)
-	assert.True(t, peer.Online)
+	// Check that the room contains the host
+	room := transport.Rooms[roomID]
+	assert.NotNil(t, room)
+	assert.Equal(t, host, room.Host)
+	assert.Contains(t, room.Peers, host.ID)
 }
 
-func TestTCPTransport_Connect_Error(t *testing.T) {
+// TestJoinRoom tests the JoinRoom function of the TCPTransport.
+func TestJoinRoom(t *testing.T) {
+	// Create a new TCPTransport instance
 	transport := NewTCPTransport()
-	address := "invalid_address"
 
-	// Run the Connect method with an invalid address
-	peer, err := transport.Connect(address)
+	// Create a peer to act as the host
+	host := &Peer{
+		ID: "host1",
+	}
 
-	// Check that the error is not nil
-	assert.Error(t, err)
-	assert.Nil(t, peer)
+	// Create a room and add the host
+	roomID, err := transport.CreateRoom(host)
+	if err != nil {
+		t.Fatalf("Failed to create room: %v", err)
+	}
+
+	// Create a peer to join the room
+	peer := &Peer{
+		ID: "peer1",
+	}
+
+	// Join the room with the peer
+	err = transport.JoinRoom(roomID, peer)
+	if err != nil {
+		t.Fatalf("Failed to join room: %v", err)
+	}
+
+	// Attempt to join the room again with the same peer
+	err = transport.JoinRoom(roomID, peer)
+	if err == nil {
+		t.Fatalf("JoinRoom did not return error for duplicate peer")
+	} else if err.Error() != fmt.Sprintf("peer %s is already in room %s", peer.ID, roomID) {
+		t.Fatalf("JoinRoom returned unexpected error message for duplicate peer")
+	}
+
+	// Attempt to join a non-existent room
+	err = transport.JoinRoom("nonexistent", peer)
+	if err == nil {
+		t.Fatalf("JoinRoom did not return error for non-existent room")
+	} else if err.Error() != fmt.Sprintf("room %s does not exist", "nonexistent") {
+		t.Fatalf("JoinRoom returned unexpected error message for non-existent room")
+	}
+}
+
+// TestGenerateRoomID tests the generateRoomID function.
+func TestGenerateRoomID(t *testing.T) {
+	// Generate a room ID
+	roomID := generateRoomID()
+
+	// Check if the room ID is of the correct length (16 characters for 8 bytes)
+	if len(roomID) != 16 {
+		t.Fatalf("Generated room ID has incorrect length: got %d, want 16", len(roomID))
+	}
+
+	// Ensure that the room ID consists of valid hexadecimal characters
+	_, err := hex.DecodeString(roomID)
+	if err != nil {
+		t.Fatalf("Generated room ID contains invalid hexadecimal characters: %s", err)
+	}
+}
+
+// TestLeaveRoom tests the LeaveRoom function of the TCPTransport.
+func TestLeaveRoom(t *testing.T) {
+	// Create a new TCPTransport instance
+	transport := NewTCPTransport()
+
+	// Create a peer to act as the host
+	host := &Peer{
+		ID: "host1",
+	}
+
+	// Create a room and add the host
+	roomID, err := transport.CreateRoom(host)
+	if err != nil {
+		t.Fatalf("Failed to create room: %v", err)
+	}
+
+	// Create a peer to join the room
+	peer := &Peer{
+		ID: "peer1",
+	}
+	err = transport.JoinRoom(roomID, peer)
+	if err != nil {
+		t.Fatalf("Failed to join room: %v", err)
+	}
+
+	// Leave the room with the peer
+	err = transport.LeaveRoom(roomID, peer.ID)
+	if err != nil {
+		t.Fatalf("Failed to leave room: %v", err)
+	}
+
+	// Attempt to leave the room again with the same peer
+	err = transport.LeaveRoom(roomID, peer.ID)
+	if err == nil {
+		t.Fatalf("LeaveRoom did not return error for peer not in room")
+	}
+
+	// Attempt to leave a non-existent room
+	err = transport.LeaveRoom("nonexistent", peer.ID)
+	if err == nil {
+		t.Fatalf("LeaveRoom did not return error for non-existent room")
+	}
+}
+
+func TestGetAllRooms(t *testing.T) {
+	// Create a new instance of TCPTransport
+	tcpTransport := NewTCPTransport()
+
+	// Create some sample rooms
+	room1 := &Room{
+		ID:    "room1",
+		Host:  &Peer{ID: "host1"},
+		Peers: map[string]*Peer{},
+		Chat:  []string{},
+	}
+	room2 := &Room{
+		ID:    "room2",
+		Host:  &Peer{ID: "host2"},
+		Peers: map[string]*Peer{},
+		Chat:  []string{},
+	}
+
+	// Add the rooms to the TCPTransport
+	tcpTransport.Rooms["room1"] = room1
+	tcpTransport.Rooms["room2"] = room2
+
+	// Call the GetAllRooms method
+	rooms := tcpTransport.GetAllRooms()
+
+	// Check if the returned map of rooms is correct
+	expectedRooms := map[string]*Room{
+		"room1": room1,
+		"room2": room2,
+	}
+
+	// Use assert.Equal to check if the actual and expected rooms are equal
+	assert.Equal(t, expectedRooms, rooms, "GetAllRooms() returned incorrect rooms")
+}
+func TestSend(t *testing.T) {
+	// Create a new instance of TCPTransport
+	transport := NewTCPTransport()
+
+	// Create a mock room
+	roomID := "room123"
+	host := &Peer{ID: "host123"}
+	room := &Room{
+		ID:    roomID,
+		Host:  host,
+		Peers: make(map[string]*Peer),
+		Chat:  []string{},
+	}
+	room.Peers[host.ID] = host
+	transport.Rooms[roomID] = room
+
+	// Define the content to send
+	content := "Hello, world!"
+
+	// Send the message
+	err := transport.Send(roomID, host, content)
+	assert.NoError(t, err, "Sending message should not return an error")
+
+	// Check if the message is stored in the room's chat history
+	assert.Equal(t, 1, len(room.Chat), "Chat history length should be 1 after sending a message")
+	assert.Equal(t, fmt.Sprintf("Message sent from %s to %s: %s", host.ID, roomID, content), room.Chat[0], "Sent message should be stored in the chat history")
+
+	err = transport.Send("nonexistent", host, content)
+	if err == nil {
+		t.Fatalf("JoinRoom did not return error for non-existent room")
+	} else if err.Error() != fmt.Sprintf("room %s does not exist", "nonexistent") {
+		t.Fatalf("JoinRoom returned unexpected error message for non-existent room")
+	}
 }

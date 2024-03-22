@@ -26,6 +26,8 @@ type TCPTransport struct {
 	Mutex    sync.Mutex       // Mutex for safe access to the rooms map
 }
 
+var _ Transport = (*TCPTransport)(nil)
+
 // NewTCPTransport creates a new instance of TCPTransport.
 // It initializes the Rooms map to store rooms in the network.
 func NewTCPTransport() *TCPTransport {
@@ -96,7 +98,7 @@ func (t *TCPTransport) CreateRoom(host *Peer) (string, error) {
 func generateRoomID() string {
 	bytes := make([]byte, 8)
 	if _, err := rand.Read(bytes); err != nil {
-		fmt.Printf("error creating room id : %s", err)
+		return ""
 	}
 	return hex.EncodeToString(bytes)
 }

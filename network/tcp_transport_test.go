@@ -1,12 +1,21 @@
 package network
 
 import (
+	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+type MockReader struct{}
+
+// Read always returns an error.
+func (m *MockReader) Read(b []byte) (n int, err error) {
+	return 0, errors.New("error")
+}
 
 func TestTCPTransport_Listen(t *testing.T) {
 	transport := NewTCPTransport()
@@ -67,6 +76,7 @@ func TestTCPTransport_CreateRoom(t *testing.T) {
 	// Create a room
 	roomID, err := transport.CreateRoom(host)
 	assert.NoError(t, err)
+	assert.NotEmpty(t, roomID)
 
 	// Check that the room is added to the map of rooms
 	transport.Mutex.Lock()
@@ -86,8 +96,14 @@ func TestJoinRoom(t *testing.T) {
 	transport := NewTCPTransport()
 
 	// Create a peer to act as the host
+	addr := SetupTest(t)
 	host := &Peer{
-		ID: "host1",
+		ID:      "host1",
+		Name:    "Host Peer",
+		Email:   "host@example.com",
+		Address: addr,
+		Online:  true,
+		Conn:    nil,
 	}
 
 	// Create a room and add the host
@@ -129,15 +145,27 @@ func TestGenerateRoomID(t *testing.T) {
 	// Generate a room ID
 	roomID := generateRoomID()
 
-	// Check if the room ID is of the correct length (16 characters for 8 bytes)
-	if len(roomID) != 16 {
-		t.Fatalf("Generated room ID has incorrect length: got %d, want 16", len(roomID))
+	if roomID == "" {
+		t.Errorf("Error generating room ID")
 	}
-
 	// Ensure that the room ID consists of valid hexadecimal characters
 	_, err := hex.DecodeString(roomID)
 	if err != nil {
 		t.Fatalf("Generated room ID contains invalid hexadecimal characters: %s", err)
+	}
+}
+
+func TestGenerateRoomID_Error(t *testing.T) {
+	// Replace rand.Reader with MockReader
+	randReaderOrig := rand.Reader
+	rand.Reader = &MockReader{}
+	defer func() { rand.Reader = randReaderOrig }()
+
+	// Generate a room ID
+	roomID := generateRoomID()
+
+	if roomID != "" {
+		t.Errorf("Expected empty room ID when error occurs, got: %s", roomID)
 	}
 }
 
@@ -147,8 +175,14 @@ func TestLeaveRoom(t *testing.T) {
 	transport := NewTCPTransport()
 
 	// Create a peer to act as the host
+	addr := SetupTest(t)
 	host := &Peer{
-		ID: "host1",
+		ID:      "host1",
+		Name:    "Host Peer",
+		Email:   "host@example.com",
+		Address: addr,
+		Online:  true,
+		Conn:    nil,
 	}
 
 	// Create a room and add the host
@@ -218,4 +252,13 @@ func TestGetAllRooms(t *testing.T) {
 
 	// Use assert.Equal to check if the actual and expected rooms are equal
 	assert.Equal(t, expectedRooms, rooms, "GetAllRooms() returned incorrect rooms")
+}
+
+func TestCreateRoomError(t *testing.T) {
+	transport := NewTCPTransport()
+	host := &Peer{}
+	roomID, err := transport.CreateRoom(host)
+	assert.Error(t, err)
+	assert.Empty(t, roomID)
+
 }

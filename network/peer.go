@@ -15,3 +15,12 @@ type Peer struct {
 	Online  bool     `json:"online"`  // Indicates whether the peer is currently online
 	Conn    net.Conn `json:"-"`       // Network connection for the peer (omitted from JSON)
 }
+
+// Room represents a collaborative editing room in the network.
+// It contains information about the room ID, host, connected peers, and chat history.
+type Room struct {
+	ID    string           `json:"id"`    // Unique identifier for the room
+	Host  *Peer            `json:"host"`  // Peer representing the host of the room
+	Peers map[string]*Peer `json:"peers"` // Map of connected peers in the room, keyed by peer ID
+	Chat  []string         `json:"chat"`  // Chat history within the room
+}

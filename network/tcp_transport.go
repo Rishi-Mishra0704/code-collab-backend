@@ -155,3 +155,20 @@ func (t *TCPTransport) LeaveRoom(roomID string, peerID string) error {
 func (t *TCPTransport) GetAllRooms() map[string]*Room {
 	return t.Rooms
 }
+
+// ExchangeSignal is not required for TCP transport.
+func (t *TCPTransport) ExchangeSignal(roomID string, peerID string, signal Signal) error {
+	return nil
+}
+
+// SendData is not required for TCP transport.
+// It would typically be used for sending data over WebRTC data channels.
+func (t *TCPTransport) SendData(roomID string, peerID string, data []byte) error {
+	return nil
+}
+
+// ReceiveData is not required for TCP transport.
+// It would typically be used for receiving data over WebRTC data channels.
+func (t *TCPTransport) ReceiveData(roomID string, peerID string) ([]byte, error) {
+	return nil, nil
+}

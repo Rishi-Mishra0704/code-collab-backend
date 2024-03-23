@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -125,4 +126,73 @@ func TestCreateRoom(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "host peer must have ID, Name, Email and Address fields")
 	})
 
+}
+
+func TestSendChatMessage(t *testing.T) {
+	// Create a new instance of TCPTransport and ChatService
+	transport := network.NewTCPTransport()
+	chatService := chat.NewChatService(transport)
+
+	// Create a new chat controller
+	chatController := NewChatController(transport, chatService)
+
+	// Create a new room
+	host := &network.Peer{
+		ID:      "host123",
+		Name:    "Host",
+		Address: "host@example.com",
+		Email:   "host@example.com",
+	}
+	roomID, err := transport.CreateRoom(host)
+	if err != nil {
+		t.Fatalf("failed to create room: %v", err)
+	}
+
+	// Create a request body with sender ID and message
+	requestBody := map[string]string{
+		"sender_id": "sender123",
+		"message":   "Test message",
+	}
+	requestBodyBytes, _ := json.Marshal(requestBody)
+
+	// Create a new request
+	req, err := http.NewRequest("POST", fmt.Sprintf("/rooms/%s/chat", roomID), bytes.NewBuffer(requestBodyBytes))
+	if err != nil {
+		t.Fatalf("failed to create request: %v", err)
+	}
+
+	// Create a new recorder
+	recorder := httptest.NewRecorder()
+
+	// Set up the Gin context
+	context, _ := gin.CreateTestContext(recorder)
+	context.Params = gin.Params{
+		{Key: "roomID", Value: roomID},
+	}
+
+	// Bind request body to context
+	context.Request = req
+
+	// Call the controller method
+	chatController.SendChatMessage(context)
+
+	// Verify the response
+	assert.Equal(t, http.StatusOK, recorder.Code)
+
+	// Parse the response body
+	var responseBody map[string]interface{}
+	err = json.Unmarshal(recorder.Body.Bytes(), &responseBody)
+	if err != nil {
+		t.Fatalf("failed to parse response body: %v", err)
+	}
+
+	// Check if the response contains the expected message
+	assert.Contains(t, responseBody, "message")
+	assert.Equal(t, "Message sent successfully", responseBody["message"])
+
+	// Check if the response contains the chat history
+	assert.Contains(t, responseBody, "chat_history")
+	chatHistory, ok := responseBody["chat_history"].([]interface{})
+	assert.True(t, ok)
+	assert.NotEmpty(t, chatHistory)
 }

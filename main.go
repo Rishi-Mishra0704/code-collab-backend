@@ -27,6 +27,7 @@ func main() {
 	router.POST("/join-room/:roomID", chatController.JoinRoom)
 	router.POST("/leave-room/:roomID/:peerID", chatController.LeaveRoom)
 	router.POST("/rooms/:roomID/chat", chatController.SendChatMessage)
+	router.POST("/execute", controllers.ExecuteCommand)
 	// Start Gin server
 	if err := router.Run(":8080"); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

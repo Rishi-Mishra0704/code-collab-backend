@@ -1,24 +1,11 @@
 package console
 
 import (
-	"bufio"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"runtime"
-	"strings"
 )
-
-func getUserInput() (string, error) {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Enter command: ")
-	input, err := reader.ReadString('\n')
-	if err != nil {
-		return "", fmt.Errorf("error reading input: %w ", err)
-	}
-	return strings.TrimSpace(input), nil
-}
 
 func getShell() string {
 	switch runtime.GOOS {
@@ -31,37 +18,35 @@ func getShell() string {
 	}
 }
 
-func CallTerminal() {
+func CallTerminal(command string) (string, error) {
 	shell := getShell()
 
-	for {
-		command, err := getUserInput()
-		if err != nil {
-			fmt.Println("Error:", err)
-			continue
-		}
-		if command == "exit" {
-			break
-		}
-		cmd := exec.Command(shell, "-c", command)
-		stdout, err := cmd.StdoutPipe()
-		if err != nil {
-			fmt.Println("Error creating stdout pipe:", err)
-			continue
-		}
-		err = cmd.Start()
-		if err != nil {
-			fmt.Println("Error starting command:", err)
-			continue
-		}
-		output, err := io.ReadAll(stdout)
-		if err != nil {
-			fmt.Println("Error reading output:", err)
-			continue
-		}
-		fmt.Println(string(output))
-
-		cmd.Wait()
+	cmd := exec.Command(shell, "-c", command)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", fmt.Errorf("error creating stdout pipe: %w", err)
 	}
-	fmt.Println("Exiting...")
+	defer stdout.Close()
+
+	if err := cmd.Start(); err != nil {
+		return "", fmt.Errorf("error starting command: %w", err)
+	}
+
+	output, err := io.ReadAll(stdout)
+	if err != nil {
+		return "", fmt.Errorf("error reading output: %w", err)
+	}
+
+	// Wait for the command to finish executing
+	if err := cmd.Wait(); err != nil {
+		exitErr, ok := err.(*exec.ExitError)
+		if !ok {
+			// Command did not exit cleanly, but the error is not an ExitError
+			return "", fmt.Errorf("error waiting for command to finish: %w", err)
+		}
+		// Command exited with non-zero status
+		return string(output), fmt.Errorf("command exited with non-zero status: %s", exitErr)
+	}
+
+	return string(output), nil
 }

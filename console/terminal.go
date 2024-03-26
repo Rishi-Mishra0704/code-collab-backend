@@ -1,10 +1,12 @@
 package console
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os/exec"
 	"runtime"
+	"strings"
 )
 
 func getShell() string {
@@ -21,20 +23,42 @@ func getShell() string {
 func CallTerminal(command string) (string, error) {
 	shell := getShell()
 
+	// Check if the command is an interactive session
+	isInteractive := false
+	if strings.Contains(command, "python") || strings.Contains(command, "irb") || strings.Contains(command, "node") {
+		isInteractive = true
+	}
+
 	cmd := exec.Command(shell, "-c", command)
-	stdout, err := cmd.StdoutPipe()
+	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {
 		return "", fmt.Errorf("error creating stdout pipe: %w", err)
 	}
-	defer stdout.Close()
+	stderrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return "", fmt.Errorf("error creating stderr pipe: %w", err)
+	}
+
+	var outputBuf bytes.Buffer
 
 	if err := cmd.Start(); err != nil {
 		return "", fmt.Errorf("error starting command: %w", err)
 	}
 
-	output, err := io.ReadAll(stdout)
-	if err != nil {
-		return "", fmt.Errorf("error reading output: %w", err)
+	if isInteractive {
+		// For interactive sessions, we need to read from both stdout and stderr continuously
+		go func() {
+			io.Copy(&outputBuf, stdoutPipe)
+		}()
+		go func() {
+			io.Copy(&outputBuf, stderrPipe)
+		}()
+	} else {
+		// For non-interactive sessions, we just need to read from stdout
+		_, err := io.Copy(&outputBuf, stdoutPipe)
+		if err != nil {
+			return "", fmt.Errorf("error reading output: %w", err)
+		}
 	}
 
 	// Wait for the command to finish executing
@@ -42,11 +66,11 @@ func CallTerminal(command string) (string, error) {
 		exitErr, ok := err.(*exec.ExitError)
 		if !ok {
 			// Command did not exit cleanly, but the error is not an ExitError
-			return "", fmt.Errorf("error waiting for command to finish: %w", err)
+			return outputBuf.String(), fmt.Errorf("error waiting for command to finish: %w", err)
 		}
 		// Command exited with non-zero status
-		return string(output), fmt.Errorf("command exited with non-zero status: %s", exitErr)
+		return outputBuf.String(), fmt.Errorf("command exited with non-zero status: %s", exitErr)
 	}
 
-	return string(output), nil
+	return outputBuf.String(), nil
 }

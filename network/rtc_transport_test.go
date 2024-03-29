@@ -95,3 +95,57 @@ func TestJoinRoom(t *testing.T) {
 	assert.Error(t, err, "JoinRoom should return an error for non-existent room")
 	assert.Contains(t, err.Error(), "room nonexistent does not exist", "Error message should indicate non-existent room")
 }
+func TestLeaveRoom(t *testing.T) {
+	// Create a new instance of RTCTransport for testing
+	transport := &RTCTransport{
+		Rooms: make(map[string]*RTCRoom),
+	}
+
+	// Create a room ID
+	roomID := "room1"
+
+	// Create a host peer
+	host := &Peer{
+		ID:      "host1",
+		Name:    "Host Peer",
+		Email:   "host@example.com",
+		Address: "localhost:1234",
+		Online:  true,
+		Conn:    nil,
+	}
+
+	// Create the room and add the host
+	transport.Rooms[roomID] = &RTCRoom{
+		Room:    &Room{ID: roomID, Host: host, Peers: make(map[string]*Peer)},
+		HostPC:  nil, // Assuming not relevant for this test
+		PeerPCs: make(map[string]*webrtc.PeerConnection),
+	}
+
+	// Create a peer to join the room
+	peer := &Peer{
+		ID:      "peer1",
+		Name:    "Joining Peer",
+		Email:   "joiner@example.com",
+		Address: "localhost:5678", // Assuming different address from the host
+		Online:  true,
+		Conn:    nil,
+	}
+
+	// Join the room with the peer
+	err := transport.JoinRoom(roomID, peer)
+	assert.NoError(t, err, "Failed to join room")
+
+	// Test leaving the room
+	err = transport.LeaveRoom(roomID, peer.ID)
+	assert.NoError(t, err, "Failed to leave room")
+
+	// Attempt to leave the room again (should return an error)
+	err = transport.LeaveRoom(roomID, peer.ID)
+	assert.Error(t, err, "LeaveRoom did not return error for already left peer")
+	assert.Contains(t, err.Error(), fmt.Sprintf("peer %s is not in room %s", peer.ID, roomID), "Unexpected error message for already left peer")
+
+	// Attempt to leave a non-existent room
+	err = transport.LeaveRoom("nonexistent", peer.ID)
+	assert.Error(t, err, "LeaveRoom did not return error for non-existent room")
+	assert.Contains(t, err.Error(), "room nonexistent does not exist", "Unexpected error message for non-existent room")
+}

@@ -48,7 +48,32 @@ func (t *RTCTransport) JoinRoom(roomID string, peer *Peer) error {
 // LeaveRoom leaves the current collaborative editing room.
 // It closes the WebRTC PeerConnection and removes the peer from the room.
 func (rt *RTCTransport) LeaveRoom(roomID string, peerID string) error {
-	// Implementation to close WebRTC PeerConnection and remove the peer from the room
+	// Lock the mutex to ensure thread safety
+	rt.Mutex.Lock()
+	defer rt.Mutex.Unlock()
+
+	// Find the room with the given roomID
+	room, ok := rt.Rooms[roomID]
+	if !ok {
+		return fmt.Errorf("room %s does not exist", roomID)
+	}
+
+	// Check if the peer with the given peerID exists in the room
+	_, exists := room.PeerPCs[peerID]
+	if !exists {
+		return fmt.Errorf("peer %s is not in room %s", peerID, roomID)
+	}
+
+	// Close the WebRTC PeerConnection for the peer (you need to implement this)
+	// err := closePeerConnection(room.PeerPCs[peerID])
+	// if err != nil {
+	//     return err
+	// }
+
+	// Remove the peer from the room's connected peers
+	delete(room.PeerPCs, peerID)
+
+	fmt.Printf("Peer %s left room %s\n", peerID, roomID)
 	return nil
 }
 

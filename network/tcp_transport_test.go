@@ -170,7 +170,7 @@ func TestGenerateRoomID_Error(t *testing.T) {
 }
 
 // TestLeaveRoom tests the LeaveRoom function of the TCPTransport.
-func TestLeaveRoom(t *testing.T) {
+func TestTCPTransport_LeaveRoom(t *testing.T) {
 	// Create a new TCPTransport instance
 	transport := NewTCPTransport()
 

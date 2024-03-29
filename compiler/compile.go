@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	models "github.com/Rishi-Mishra0704/code-collab-backend/compiler/model"
+	models "github.com/Rishi-Mishra0704/code-collab-backend/models"
 )
 
 func ExecuteCodeHandler(w http.ResponseWriter, r *http.Request) {

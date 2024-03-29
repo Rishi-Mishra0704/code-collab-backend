@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Rishi-Mishra0704/code-collab-backend/chat"
+	"github.com/Rishi-Mishra0704/code-collab-backend/compiler"
 	"github.com/Rishi-Mishra0704/code-collab-backend/controllers"
 	"github.com/Rishi-Mishra0704/code-collab-backend/network"
 	"github.com/gin-gonic/gin"
@@ -39,7 +40,7 @@ func main() {
 	// Initialize WebSocket router
 	wsRouter := http.NewServeMux()
 	wsRouter.HandleFunc("/execute", controllers.ExecuteCommand)
-
+	wsRouter.HandleFunc("/compile", compiler.ExecuteCodeHandler)
 	// Apply CORS middleware to the WebSocket server
 	wsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"*"}),

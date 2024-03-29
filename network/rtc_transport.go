@@ -2,6 +2,8 @@ package network
 
 import (
 	"errors"
+	"fmt"
+	"sync"
 
 	"github.com/pion/webrtc/v3"
 )
@@ -16,13 +18,28 @@ type RTCRoom struct {
 // RTCTransport represents the network transport layer for WebRTC communication.
 type RTCTransport struct {
 	Rooms map[string]*RTCRoom // Map of active rooms, keyed by room ID
+	Mutex sync.Mutex
 	// Additional fields specific to WebRTC transport layer (e.g., ICE servers, configurations, etc.)
 }
 
-// JoinRoom joins a collaborative editing room using the specified room ID.
-// It creates a new RTCRoom instance for the room and initializes WebRTC PeerConnections.
-func (rt *RTCTransport) JoinRoom(roomID string, peer *Peer) error {
-	// Implementation to initialize WebRTC PeerConnection for the specified room and peer
+func (t *RTCTransport) JoinRoom(roomID string, peer *Peer) error {
+	t.Mutex.Lock()
+	defer t.Mutex.Unlock()
+
+	room, ok := t.Rooms[roomID]
+	if !ok {
+		return fmt.Errorf("room %s does not exist", roomID)
+	}
+
+	// Check if the peer is already in the room
+	if _, exists := room.PeerPCs[peer.ID]; exists {
+		return fmt.Errorf("peer %s is already in room %s", peer.ID, roomID)
+	}
+
+	// Add the peer to the room's connected peers
+	room.PeerPCs[peer.ID] = nil // Initialize to nil for now, assuming it will be initialized later
+
+	fmt.Printf("Peer %s joined room %s\n", peer.ID, roomID)
 	return nil
 }
 

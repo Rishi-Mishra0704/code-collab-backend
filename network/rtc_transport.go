@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/gorilla/websocket"
 	"github.com/pion/webrtc/v3"
 )
 
@@ -108,21 +109,35 @@ func (rt *RTCTransport) CreateRoom(host *Peer) (string, error) {
 	return roomID, nil
 }
 
-// RTCSignalingServer represents a signaling server for WebRTC connections
-type RTCSignalingServer struct {
-	// You can add fields here if necessary
-}
-
 // ExchangeSignal is used for exchanging signaling messages required for establishing
 // WebRTC connections between peers.
 func (t *RTCTransport) ExchangeSignal(roomID string, peerID string, signal Signal) error {
-	// Here you would typically send the signaling message to the specified peer in the specified room
-	// For simplicity, let's just print the signal for now
+	t.Mutex.Lock()
+	defer t.Mutex.Unlock()
+
+	room, ok := t.Rooms[roomID]
+	if !ok {
+		return fmt.Errorf("room not found: %s", roomID)
+	}
+
+	_, ok = room.PeerPCs[peerID]
+	if !ok {
+		return fmt.Errorf("peer not found in room: %s", peerID)
+	}
+
+	// Convert signal to JSON
 	signalJSON, err := json.Marshal(signal)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal signal: %w", err)
 	}
-	fmt.Printf("Sending signal to peer %s in room %s: %s\n", peerID, roomID, string(signalJSON))
+
+	// Here you would typically send the signaling message to the signaling server
+	// For demonstration purposes, let's assume you have a WebSocket connection to the signaling server
+	err = sendSignal(signalJSON)
+	if err != nil {
+		return fmt.Errorf("failed to send signal to signaling server: %w", err)
+	}
+
 	return nil
 }
 
@@ -148,6 +163,25 @@ func initializePeerConnection() (*webrtc.PeerConnection, error) {
 		return nil, errors.New("failed to create PeerConnection: " + err.Error())
 	}
 	return peerConnection, nil
+}
+
+// sendSignalViaWebSocket sends the signaling message to the specified peer via WebSocket.
+func sendSignal(signalJSON []byte) error {
+	// Assuming you have a WebSocket connection to the signaling server
+	// Replace the URL with your signaling server WebSocket endpoint
+	conn, _, err := websocket.DefaultDialer.Dial("ws://signaling-server-url", nil)
+	if err != nil {
+		return fmt.Errorf("failed to connect to signaling server: %w", err)
+	}
+	defer conn.Close()
+
+	// Write the signal JSON to the WebSocket connection
+	err = conn.WriteMessage(websocket.TextMessage, signalJSON)
+	if err != nil {
+		return fmt.Errorf("failed to write signal to signaling server: %w", err)
+	}
+
+	return nil
 }
 
 // Close method is not required for WebRTC PeerConnection

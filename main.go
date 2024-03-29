@@ -7,6 +7,7 @@ import (
 	"github.com/Rishi-Mishra0704/code-collab-backend/chat"
 	"github.com/Rishi-Mishra0704/code-collab-backend/compiler"
 	"github.com/Rishi-Mishra0704/code-collab-backend/controllers"
+	filefolder "github.com/Rishi-Mishra0704/code-collab-backend/file-folder"
 	"github.com/Rishi-Mishra0704/code-collab-backend/network"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/handlers"
@@ -29,7 +30,9 @@ func main() {
 	apiRouter.POST("/join-room/:roomID", chatController.JoinRoom)
 	apiRouter.POST("/leave-room/:roomID/:peerID", chatController.LeaveRoom)
 	apiRouter.POST("/rooms/:roomID/chat", chatController.SendChatMessage)
-
+	apiRouter.POST("create-file-folder", filefolder.CreateFileOrFolder)
+	apiRouter.POST("list-file-folder", filefolder.ListFilesOrFolder)
+	apiRouter.POST("read-file", filefolder.ReadFileContent)
 	// Start Gin server for REST API
 	go func() {
 		if err := apiRouter.Run(":8080"); err != nil {

@@ -49,7 +49,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func HandleConnections(w http.ResponseWriter, r *http.Request) {
+func HandleCollaborations(w http.ResponseWriter, r *http.Request) {
 	// Upgrade initial GET request to a WebSocket
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {

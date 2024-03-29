@@ -1,6 +1,10 @@
 package network
 
-import "github.com/pion/webrtc/v3"
+import (
+	"errors"
+
+	"github.com/pion/webrtc/v3"
+)
 
 // RTCRoom represents a collaborative editing room in the network using WebRTC.
 type RTCRoom struct {
@@ -55,4 +59,14 @@ func (rt *RTCTransport) SendData(roomID string, peerID string, data []byte) erro
 func (rt *RTCTransport) ReceiveData(roomID string, peerID string) ([]byte, error) {
 	// Implementation to receive data from WebRTC data channel
 	return nil, nil
+}
+func initializePeerConnection() (*webrtc.PeerConnection, error) {
+	// Implement your logic to initialize a new WebRTC PeerConnection
+	// Example:
+	config := webrtc.Configuration{}
+	peerConnection, err := webrtc.NewPeerConnection(config)
+	if err != nil {
+		return nil, errors.New("failed to create PeerConnection: " + err.Error())
+	}
+	return peerConnection, nil
 }

@@ -36,8 +36,31 @@ func (rt *RTCTransport) LeaveRoom(roomID string, peerID string) error {
 // CreateRoom creates a new collaborative editing room and returns the room ID.
 // It initializes a new RTCRoom instance and sets up the host's WebRTC PeerConnection.
 func (rt *RTCTransport) CreateRoom(host *Peer) (string, error) {
-	// Implementation to create a new RTCRoom and initialize host's WebRTC PeerConnection
-	return "", nil
+	// Generate a unique room ID
+	roomID := generateRoomID() // You need to implement a function to generate a unique room ID
+
+	// Initialize a new RTCRoom instance
+	room := &RTCRoom{
+		Room: &Room{
+			ID: roomID,
+			// You can set other room information here if needed
+		},
+		PeerPCs: make(map[string]*webrtc.PeerConnection),
+	}
+
+	// Initialize the host's WebRTC PeerConnection
+	hostPC, err := initializePeerConnection()
+	if err != nil {
+		return "", err
+	}
+
+	// Set the host's WebRTC PeerConnection in the RTCRoom
+	room.HostPC = hostPC
+
+	// Add the room to the Rooms map
+	rt.Rooms[roomID] = room
+
+	return roomID, nil
 }
 
 // ExchangeSignal is used for exchanging signaling messages required for establishing

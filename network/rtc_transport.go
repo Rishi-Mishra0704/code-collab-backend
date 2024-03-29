@@ -1,6 +1,7 @@
 package network
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -107,10 +108,21 @@ func (rt *RTCTransport) CreateRoom(host *Peer) (string, error) {
 	return roomID, nil
 }
 
+// RTCSignalingServer represents a signaling server for WebRTC connections
+type RTCSignalingServer struct {
+	// You can add fields here if necessary
+}
+
 // ExchangeSignal is used for exchanging signaling messages required for establishing
 // WebRTC connections between peers.
-func (rt *RTCTransport) ExchangeSignal(roomID string, peerID string, signal Signal) error {
-	// Implementation to exchange signaling messages between peers using WebRTC
+func (t *RTCTransport) ExchangeSignal(roomID string, peerID string, signal Signal) error {
+	// Here you would typically send the signaling message to the specified peer in the specified room
+	// For simplicity, let's just print the signal for now
+	signalJSON, err := json.Marshal(signal)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Sending signal to peer %s in room %s: %s\n", peerID, roomID, string(signalJSON))
 	return nil
 }
 

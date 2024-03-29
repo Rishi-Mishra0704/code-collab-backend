@@ -22,6 +22,8 @@ type RTCTransport struct {
 	// Additional fields specific to WebRTC transport layer (e.g., ICE servers, configurations, etc.)
 }
 
+var _ Transport = (*RTCTransport)(nil)
+
 func (t *RTCTransport) JoinRoom(roomID string, peer *Peer) error {
 	t.Mutex.Lock()
 	defer t.Mutex.Unlock()
@@ -109,4 +111,13 @@ func initializePeerConnection() (*webrtc.PeerConnection, error) {
 		return nil, errors.New("failed to create PeerConnection: " + err.Error())
 	}
 	return peerConnection, nil
+}
+
+// Close method is not required for WebRTC PeerConnection
+func (t *RTCTransport) Close() error {
+	return nil
+}
+
+func (t *RTCTransport) Listen(address string) error {
+	return nil
 }

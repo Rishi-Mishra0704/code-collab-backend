@@ -91,7 +91,7 @@ func TestTCPTransport_CreateRoom(t *testing.T) {
 }
 
 // TestJoinRoom tests the JoinRoom function of the TCPTransport.
-func TestJoinRoom(t *testing.T) {
+func TestTCPTransport_JoinRoom(t *testing.T) {
 	// Create a new TCPTransport instance
 	transport := NewTCPTransport()
 

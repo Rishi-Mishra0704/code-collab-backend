@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log" // Import log package for logging
 	"os/exec"
 	"runtime"
 	"strings"
@@ -22,6 +23,8 @@ func getShell() string {
 
 func CallTerminal(command string) (string, error) {
 	shell := getShell()
+
+	log.Printf("Executing command: %s\n", command)
 
 	// Check if the command is an interactive session
 	isInteractive := false

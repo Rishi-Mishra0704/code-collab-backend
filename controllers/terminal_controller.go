@@ -17,6 +17,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+// ExecuteCommand handles WebSocket connections and executes commands
 func ExecuteCommand(w http.ResponseWriter, r *http.Request) {
 	// Upgrade the HTTP connection to WebSocket
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -44,13 +45,20 @@ func ExecuteCommand(w http.ResponseWriter, r *http.Request) {
 		output, err := console.CallTerminal(command)
 		if err != nil {
 			log.Printf("Error executing command: %v", err)
+			sendErrorMessage(conn, err)
 			continue
 		}
-
 		// Send output back to client
 		if err := conn.WriteMessage(websocket.TextMessage, []byte(output)); err != nil {
 			log.Printf("Error sending output: %v", err)
 			return
 		}
+	}
+}
+
+func sendErrorMessage(conn *websocket.Conn, err error) {
+	errorMessage := []byte("Error: " + err.Error())
+	if err := conn.WriteMessage(websocket.TextMessage, errorMessage); err != nil {
+		log.Printf("Error sending error message: %v", err)
 	}
 }

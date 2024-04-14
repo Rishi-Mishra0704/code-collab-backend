@@ -26,9 +26,15 @@ jobs:
         run: |
           go mod download
 
-      - name: Run tests with coverage
+      - name: Set up Dart
+        uses: subosito/setup-dart@v1
+        with:
+          dart-sdk: stable
+
+      - name: Run Go tests with coverage
         run: |
           go test -v -coverprofile=coverage.txt ./...
+
 
       - name: Upload coverage results
         uses: actions/upload-artifact@v2

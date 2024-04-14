@@ -3,7 +3,6 @@ package compiler
 import (
 	"encoding/json"
 	"net/http"
-	"os/exec"
 	"strings"
 
 	models "github.com/Rishi-Mishra0704/code-collab-backend/models"
@@ -11,36 +10,39 @@ import (
 
 func ExecuteCodeHandler(w http.ResponseWriter, r *http.Request) {
 	var codeReq models.CodeRequest
+	var output string
+	var errorMsg string
+	var err error
 	if err := json.NewDecoder(r.Body).Decode(&codeReq); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	var cmd *exec.Cmd
 	switch codeReq.Language {
+	case "go":
+		output, err = executeGoCodeWithContext(codeReq.Code)
 	case "js":
-		cmd = exec.Command("node", "-e", codeReq.Code)
+		output, err = executeNodeCodeWithContext(codeReq.Code)
 	case "py":
-		cmd = exec.Command("python", "-")
-		cmd.Stdin = strings.NewReader(codeReq.Code)
+		output, err = executePythonCodeWithContext(codeReq.Code)
 	case "rb":
-		cmd = exec.Command("ruby", "-e", codeReq.Code)
-	case "php":
-		cmd = exec.Command("php", "-r", codeReq.Code)
+		output, err = executeRubyCodeWithContext(codeReq.Code)
+	case "java":
+		output, err = executeJavaCodeWithContext(codeReq.Code)
+	case "dart":
+		output, err = executeDartCodeWithContext(codeReq.Code)
 	default:
 		http.Error(w, "Unsupported language", http.StatusBadRequest)
 		return
 	}
 
-	output, err := cmd.CombinedOutput()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		errorMsg = err.Error() // Set errorMsg to the error message
 	}
 
 	response := models.CodeResponse{
-		Output: strings.TrimRight(string(output), "\n"),
-		Error:  "",
+		Output: strings.TrimRight(output, "\n"),
+		Error:  errorMsg,
 	}
 	json.NewEncoder(w).Encode(response)
 }

@@ -26,7 +26,7 @@ jobs:
         run: |
           go mod download
 
-      - name: Run tests with coverage
+      - name: Run Go tests with coverage
         run: |
           go test -v -coverprofile=coverage.txt ./...
 

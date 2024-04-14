@@ -39,7 +39,7 @@ func ExecuteCodeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := models.CodeResponse{
-		Output: string(output),
+		Output: strings.TrimRight(string(output), "\n"),
 		Error:  "",
 	}
 	json.NewEncoder(w).Encode(response)

@@ -11,6 +11,7 @@ import (
 func ExecuteCodeHandler(w http.ResponseWriter, r *http.Request) {
 	var codeReq models.CodeRequest
 	var output string
+	var errorMsg string
 	var err error
 	if err := json.NewDecoder(r.Body).Decode(&codeReq); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -36,13 +37,12 @@ func ExecuteCodeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		errorMsg = err.Error() // Set errorMsg to the error message
 	}
 
 	response := models.CodeResponse{
 		Output: strings.TrimRight(output, "\n"),
-		Error:  "",
+		Error:  errorMsg,
 	}
 	json.NewEncoder(w).Encode(response)
 }

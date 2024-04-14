@@ -26,6 +26,8 @@ func ExecuteCodeHandler(w http.ResponseWriter, r *http.Request) {
 		output, err = executePythonCodeWithContext(codeReq.Code)
 	case "rb":
 		output, err = executeRubyCodeWithContext(codeReq.Code)
+	case "java":
+		output, err = executeJavaCodeWithContext(codeReq.Code)
 	default:
 		http.Error(w, "Unsupported language", http.StatusBadRequest)
 		return

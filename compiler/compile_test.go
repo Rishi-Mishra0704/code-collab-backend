@@ -41,6 +41,11 @@ func TestExecuteCodeHandler(t *testing.T) {
 			Payload:      map[string]interface{}{"language": "java", "code": "public class Main {\n\tpublic static void main(String[] args) {\n\t\tSystem.out.println(\"Hello, World!\");\n\t}\n}"},
 			ExpectedCode: http.StatusOK,
 		},
+		{
+			Name:         "Invalid payload - Unsupported",
+			Payload:      map[string]interface{}{"language": "test_lang", "code": "dsfsd"},
+			ExpectedCode: http.StatusBadRequest,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -64,6 +69,14 @@ func TestExecuteCodeHandler(t *testing.T) {
 
 				assert.Contains(t, response, "output")
 				assert.Empty(t, response["error"])
+
+			} else if tc.ExpectedCode == http.StatusBadRequest {
+				// Read the response body
+				responseBody := rr.Body.String()
+
+				// Assert that the response body matches the expected error message
+				assert.Equal(t, "Unsupported language\n", responseBody)
+
 			} else {
 				var response map[string]string
 				err = json.Unmarshal(rr.Body.Bytes(), &response)

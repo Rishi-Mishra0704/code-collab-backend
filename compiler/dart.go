@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -23,7 +22,7 @@ func executeDartCode(ctx context.Context, code string) (*models.CodeResponse, er
 
 	// Write the Dart code to a temporary file
 	dartFile := filepath.Join(tmpDir, "main.dart")
-	if err := ioutil.WriteFile(dartFile, []byte(code), 0644); err != nil {
+	if err := os.WriteFile(dartFile, []byte(code), 0644); err != nil {
 		return nil, fmt.Errorf("failed to write Dart code to file: %v", err)
 	}
 

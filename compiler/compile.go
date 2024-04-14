@@ -28,6 +28,8 @@ func ExecuteCodeHandler(w http.ResponseWriter, r *http.Request) {
 		output, err = executeRubyCodeWithContext(codeReq.Code)
 	case "java":
 		output, err = executeJavaCodeWithContext(codeReq.Code)
+	case "dart":
+		output, err = executeDartCodeWithContext(codeReq.Code)
 	default:
 		http.Error(w, "Unsupported language", http.StatusBadRequest)
 		return

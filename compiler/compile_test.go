@@ -42,6 +42,11 @@ func TestExecuteCodeHandler(t *testing.T) {
 			ExpectedCode: http.StatusOK,
 		},
 		{
+			Name:         "Valid payload - Dart",
+			Payload:      map[string]interface{}{"language": "dart", "code": "void main() {\n  print(\"Hello, World!\");\n}\n  "},
+			ExpectedCode: http.StatusOK,
+		},
+		{
 			Name:         "Invalid payload - Unsupported",
 			Payload:      map[string]interface{}{"language": "test_lang", "code": "dsfsd"},
 			ExpectedCode: http.StatusBadRequest,

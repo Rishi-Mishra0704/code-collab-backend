@@ -26,15 +26,15 @@ jobs:
         run: |
           go mod download
 
-      - name: Set up Dart
-        uses: subosito/setup-dart@v1
+      - name: Set up Docker
+        uses: actions/setup-docker@v2
         with:
-          dart-sdk: stable
+          dockerfile: |
+            FROM dart:latest
 
       - name: Run Go tests with coverage
         run: |
           go test -v -coverprofile=coverage.txt ./...
-
 
       - name: Upload coverage results
         uses: actions/upload-artifact@v2

@@ -18,6 +18,8 @@ func ExecuteCodeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch codeReq.Language {
+	case "go":
+		output, err = executeGoCodeWithContext(codeReq.Code)
 	case "js":
 		output, err = executeNodeCodeWithContext(codeReq.Code)
 	case "py":

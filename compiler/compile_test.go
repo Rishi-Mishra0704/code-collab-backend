@@ -36,6 +36,11 @@ func TestExecuteCodeHandler(t *testing.T) {
 			Payload:      map[string]interface{}{"language": "go", "code": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n)\n\nfunc main() {\n\tcurrentTime := time.Now()\n\tformattedTime := currentTime.Format(\"Monday, January 2, 2006 15:04:05\")\n\tfmt.Println(\"Formatted time:\", formattedTime)\n}"},
 			ExpectedCode: http.StatusOK,
 		},
+		{
+			Name:         "Valid payload - Java",
+			Payload:      map[string]interface{}{"language": "java", "code": "public class Main {\n\tpublic static void main(String[] args) {\n\t\tSystem.out.println(\"Hello, World!\");\n\t}\n}"},
+			ExpectedCode: http.StatusOK,
+		},
 	}
 
 	for _, tc := range testCases {

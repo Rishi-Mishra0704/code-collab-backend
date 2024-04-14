@@ -11,6 +11,8 @@ import (
 
 func ExecuteCodeHandler(w http.ResponseWriter, r *http.Request) {
 	var codeReq models.CodeRequest
+	var output string
+	var err error
 	if err := json.NewDecoder(r.Body).Decode(&codeReq); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -24,22 +26,19 @@ func ExecuteCodeHandler(w http.ResponseWriter, r *http.Request) {
 		cmd = exec.Command("python", "-")
 		cmd.Stdin = strings.NewReader(codeReq.Code)
 	case "rb":
-		cmd = exec.Command("ruby", "-e", codeReq.Code)
-	case "php":
-		cmd = exec.Command("php", "-r", codeReq.Code)
+		output, err = executeRubyCodeWithContext(codeReq.Code)
 	default:
 		http.Error(w, "Unsupported language", http.StatusBadRequest)
 		return
 	}
 
-	output, err := cmd.CombinedOutput()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	response := models.CodeResponse{
-		Output: strings.TrimRight(string(output), "\n"),
+		Output: strings.TrimRight(output, "\n"),
 		Error:  "",
 	}
 	json.NewEncoder(w).Encode(response)

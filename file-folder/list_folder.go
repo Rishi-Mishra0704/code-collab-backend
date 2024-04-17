@@ -17,7 +17,8 @@ import (
 //	}
 //
 // Upon receiving the request, it reads the contents of the specified directory and returns a JSON response with HTTP status 200 (OK)
-// containing an array of file names present in the directory.
+// containing an array of objects, each representing a file or folder, with properties 'name' and 'type'.
+// 'name' represents the name of the file or folder, and 'type' indicates whether it is a file or a folder.
 // In case of any errors during the process, it returns a JSON response with HTTP status 500 (Internal Server Error)
 // and an error message.
 func ListFilesOrFolder(c *gin.Context) {
@@ -42,13 +43,22 @@ func ListFilesOrFolder(c *gin.Context) {
 		return
 	}
 
-	// Create a list to hold file names.
-	var fileList []string
+	// Create a list to hold file and folder objects.
+	var fileList []map[string]interface{}
 	for _, file := range files {
-		// Append file name to the list.
-		fileList = append(fileList, file.Name())
+		// Initialize a map to represent each file or folder.
+		item := make(map[string]interface{})
+		item["name"] = file.Name()
+		// Determine the type of the item (file or folder).
+		if file.IsDir() {
+			item["type"] = "folder"
+		} else {
+			item["type"] = "file"
+		}
+		// Append the item to the list.
+		fileList = append(fileList, item)
 	}
 
-	// Return the list of file names in the directory.
+	// Return the list of file and folder objects in the directory.
 	c.JSON(http.StatusOK, gin.H{"files": fileList})
 }

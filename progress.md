@@ -9,6 +9,7 @@ Pending:
 - Add Video call system
 - Make it fully Decentralized and P2P
 - Add proper Security for Decentralized system
+- Use fyne package for desktop GUI
 
 In Progress:
 - Terminal sort of working

@@ -70,7 +70,7 @@ func TestTCPTransport_CreateRoom(t *testing.T) {
 		Email:   "host@example.com",
 		Address: addr,
 		Online:  true,
-		Conn:    nil, // Connection not needed for this test
+		// Connection not needed for this test
 	}
 
 	// Create a room
@@ -103,7 +103,6 @@ func TestJoinRoom(t *testing.T) {
 		Email:   "host@example.com",
 		Address: addr,
 		Online:  true,
-		Conn:    nil,
 	}
 
 	// Create a room and add the host
@@ -182,7 +181,6 @@ func TestLeaveRoom(t *testing.T) {
 		Email:   "host@example.com",
 		Address: addr,
 		Online:  true,
-		Conn:    nil,
 	}
 
 	// Create a room and add the host

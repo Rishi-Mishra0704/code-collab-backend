@@ -37,7 +37,6 @@ func TestCreateRoom(t *testing.T) {
 			Email:   "host@user.com",
 			Address: "127.0.0.1:8082",
 			Online:  true,
-			Conn:    nil,
 		}
 
 		// Marshal the host peer into JSON

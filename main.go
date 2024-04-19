@@ -27,11 +27,15 @@ func main() {
 	apiRouter := gin.Default()
 	apiRouter.Use(cors.Default())
 	// Define API endpoints using the ChatController methods
+
+	// Room operations
 	apiRouter.GET("/rooms", chatController.GetRooms)
 	apiRouter.POST("/create-room", chatController.CreateRoom)
 	apiRouter.POST("/join-room/", chatController.JoinRoom)
 	apiRouter.POST("/leave-room/:roomID/:peerID", chatController.LeaveRoom)
-	apiRouter.POST("/rooms/:roomID/chat", chatController.SendChatMessage)
+	apiRouter.POST("/rooms/:roomID/send-message", chatController.SendChatMessage)
+	apiRouter.GET("/rooms/:roomID/chats", chatController.GetChatHistory)
+	// File and folder operations
 	apiRouter.POST("create", filefolder.CreateFileOrFolder)
 	apiRouter.POST("list", filefolder.ListFilesOrFolder)
 	apiRouter.POST("read", filefolder.ReadFileContent)
@@ -44,8 +48,11 @@ func main() {
 
 	// Initialize WebSocket router
 	wsRouter := http.NewServeMux()
+	// handle Collaborations
 	wsRouter.HandleFunc("/collab", collab.HandleCollaborations)
+	// Execute terminal commands
 	wsRouter.HandleFunc("/execute", controllers.ExecuteCommand)
+	// Execute code
 	wsRouter.HandleFunc("/compile", compiler.ExecuteCodeHandler)
 	// Apply CORS middleware to the WebSocket server
 	wsHandler := handlers.CORS(

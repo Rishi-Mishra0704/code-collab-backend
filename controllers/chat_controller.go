@@ -119,13 +119,18 @@ func (cc *ChatController) SendChatMessage(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	c.JSON(http.StatusOK, gin.H{"message": "Message sent successfully"})
+}
 
-	// Receive the updated chat history after sending the message
+func (cc *ChatController) GetChatHistory(c *gin.Context) {
+	roomID := c.Param("roomID")
+
+	// Retrieve the chat history for the specified room using the ChatService
 	chatHistory, err := cc.ChatService.Receive(roomID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Message sent successfully", "chat_history": chatHistory})
+	c.JSON(http.StatusOK, gin.H{"chat_history": chatHistory})
 }

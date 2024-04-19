@@ -47,23 +47,24 @@ func (cc *ChatController) CreateRoom(c *gin.Context) {
 
 // JoinRoom handles a peer joining an existing chat room.
 func (cc *ChatController) JoinRoom(c *gin.Context) {
-	roomID := c.Param("roomID")
-
-	// Parse request body to get peer details
-	var peer network.Peer
-	if err := c.BindJSON(&peer); err != nil {
+	// Parse request body to get peer details including room_id
+	var request struct {
+		RoomID string `json:"room_id"`
+		Peer   network.Peer
+	}
+	if err := c.BindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Join room with peer
-	err := cc.TCPTransport.JoinRoom(roomID, &peer)
+	err := cc.TCPTransport.JoinRoom(request.RoomID, &request.Peer)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Peer %s joined room %s", peer.ID, roomID)})
+	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Peer %s joined room %s", request.Peer.ID, request.RoomID)})
 }
 
 // LeaveRoom handles a peer leaving a chat room.

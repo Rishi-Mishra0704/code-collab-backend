@@ -29,7 +29,7 @@ func main() {
 	// Define API endpoints using the ChatController methods
 	apiRouter.GET("/rooms", chatController.GetRooms)
 	apiRouter.POST("/create-room", chatController.CreateRoom)
-	apiRouter.POST("/join-room/:roomID", chatController.JoinRoom)
+	apiRouter.POST("/join-room/", chatController.JoinRoom)
 	apiRouter.POST("/leave-room/:roomID/:peerID", chatController.LeaveRoom)
 	apiRouter.POST("/rooms/:roomID/chat", chatController.SendChatMessage)
 	apiRouter.POST("create", filefolder.CreateFileOrFolder)
